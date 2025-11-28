@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ATS Resume Analyzer</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="app">
+        <!-- Landing Page -->
+        <div id="landingPage" class="page active">
+            <nav class="navbar">
+                <div class="nav-brand">
+                    <h2>ATS Analyzer</h2>
+                </div>
+                <div class="nav-links">
+                    <button onclick="toggleAuthModal('login')" class="btn-secondary">Login</button>
+                    <button onclick="toggleAuthModal('signup')" class="btn-primary">Sign Up</button>
+                </div>
+            </nav>
+            
+            <div class="hero">
+                <div class="hero-content">
+                    <h1>AI-Powered Resume Shortlister</h1>
+                    <p>Analyze your resume and get ATS-optimized insights instantly.</p>
+                    <button onclick="toggleAuthModal('signup')" class="btn-hero">Get Started Free</button>
+                </div>
+                <div class="hero-visual">
+                    <div class="floating-card">
+                        <div class="score-circle">85%</div>
+                        <p>ATS Score</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Auth Modal -->
+        <div id="authModal" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="closeAuthModal()">&times;</span>
+                
+                <!-- Login Form -->
+                <div id="loginForm" class="auth-form active">
+                    <h2>Welcome Back</h2>
+                    <p>Sign in to your account</p>
+                    
+                    <form id="loginFormElement">
+                        <div class="form-group">
+                            <input type="email" id="loginEmail" placeholder="Email" required>
+                        </div>
+                        <div class="form-group">
+                            <input type="password" id="loginPassword" placeholder="Password" required>
+                        </div>
+                        <button type="submit" class="btn-primary full-width">Sign In</button>
+                    </form>
+                    
+                    <p class="auth-switch">Don't have an account? <a href="#" onclick="switchAuthForm('signup')">Sign up</a></p>
+                </div>
+
+                <!-- Signup Form -->
+                <div id="signupForm" class="auth-form">
+                    <h2>Create Account</h2>
+                    <p>Join thousands of professionals</p>
+                    
+                    <form id="signupFormElement">
+                        <div class="form-group">
+                            <input type="text" id="signupName" placeholder="Full Name" required>
+                        </div>
+                        <div class="form-group">
+                            <input type="email" id="signupEmail" placeholder="Email" required>
+                        </div>
+                        <div class="form-group">
+                            <input type="password" id="signupPassword" placeholder="Password (min 6 chars)" required>
+                        </div>
+                        <button type="submit" class="btn-primary full-width">Create Account</button>
+                    </form>
+                    
+                    <p class="auth-switch">Already have an account? <a href="#" onclick="switchAuthForm('login')">Sign in</a></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dashboard -->
+        <div id="dashboardPage" class="page">
+            <nav class="navbar">
+                <div class="nav-brand">
+                    <h2>ATS Analyzer</h2>
+                </div>
+                <div class="nav-links">
+                    <span id="userName" class="user-name">User</span>
+                    <button onclick="showAnalyzer()" class="btn-primary">Analyze Resume</button>
+                    <button onclick="logout()" class="btn-secondary">Logout</button>
+                </div>
+            </nav>
+            
+            <div class="dashboard-content">
+                <div class="dashboard-header">
+                    <h1>Dashboard</h1>
+                    <button onclick="showAnalyzer()" class="btn-primary">Analyze New Resume</button>
+                </div>
+                
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h3 id="totalAnalyses">0</h3>
+                        <p>Total Analyses</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3 id="avgScore">0%</h3>
+                        <p>Average Score</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3 id="shortlisted">0</h3>
+                        <p>Shortlisted</p>
+                    </div>
+                </div>
+                
+                <div class="history-section">
+                    <h2>Analysis History</h2>
+                    <div id="historyList" class="history-list">
+                        <div class="empty-state">
+                            <p>No analyses yet. Start by analyzing your first resume!</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Analyzer Page -->
+        <div id="analyzerPage" class="page">
+            <nav class="navbar">
+                <div class="nav-brand">
+                    <h2>ATS Analyzer</h2>
+                </div>
+                <div class="nav-links">
+                    <button onclick="showDashboard()" class="btn-secondary">Dashboard</button>
+                    <span id="userNameAnalyzer" class="user-name">User</span>
+                    <button onclick="logout()" class="btn-secondary">Logout</button>
+                </div>
+            </nav>
+            
+            <div class="analyzer-content">
+                <h1>Resume Analysis</h1>
+                
+                <div class="analyzer-grid">
+                    <div class="upload-section">
+                        <h3>Upload Resume</h3>
+                        <div class="upload-area" id="uploadArea">
+                            <div class="upload-icon">📄</div>
+                            <p>Drag & drop your resume here</p>
+                            <p class="upload-hint">or click to browse (PDF, DOCX)</p>
+                            <input type="file" id="resumeFile" accept=".pdf,.docx,.doc" hidden>
+                        </div>
+                        
+                        <h3>Job Description</h3>
+                        <textarea id="jobDescription" placeholder="Paste the job description here..." rows="8"></textarea>
+                        
+                        <button onclick="analyzeResume()" class="btn-primary full-width" id="analyzeBtn">
+                            Analyze Resume
+                        </button>
+                    </div>
+                    
+                    <div class="results-section" id="resultsSection" style="display: none;">
+                        <h3>Analysis Results</h3>
+                        
+                        <div class="score-display">
+                            <div class="main-score">
+                                <div class="score-circle-large" id="mainScoreCircle">
+                                    <span id="mainScore">0</span>%
+                                </div>
+                                <p id="verdict">Analyzing...</p>
+                            </div>
+                        </div>
+                        
+                        <div class="score-breakdown">
+                            <div class="score-item">
+                                <span>Keywords</span>
+                                <div class="score-bar">
+                                    <div class="score-fill" id="keywordBar"></div>
+                                </div>
+                                <span id="keywordScore">0%</span>
+                            </div>
+                            <div class="score-item">
+                                <span>Skills</span>
+                                <div class="score-bar">
+                                    <div class="score-fill" id="skillsBar"></div>
+                                </div>
+                                <span id="skillsScore">0%</span>
+                            </div>
+                            <div class="score-item">
+                                <span>Experience</span>
+                                <div class="score-bar">
+                                    <div class="score-fill" id="experienceBar"></div>
+                                </div>
+                                <span id="experienceScore">0%</span>
+                            </div>
+                            <div class="score-item">
+                                <span>Education</span>
+                                <div class="score-bar">
+                                    <div class="score-fill" id="educationBar"></div>
+                                </div>
+                                <span id="educationScore">0%</span>
+                            </div>
+                        </div>
+                        
+                        <div class="insights">
+                            <div class="insight-card">
+                                <h4>Matched Keywords</h4>
+                                <div id="matchedKeywords" class="keyword-tags"></div>
+                            </div>
+                            <div class="insight-card">
+                                <h4>Missing Keywords</h4>
+                                <div id="missingKeywords" class="keyword-tags missing"></div>
+                            </div>
+                            <div class="insight-card">
+                                <h4>Missing Skills</h4>
+                                <div id="missingSkills" class="keyword-tags missing"></div>
+                            </div>
+                        </div>
+                        
+                        <button onclick="downloadReport()" class="btn-primary full-width">
+                            Download PDF Report
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="loading" class="loading">
+        <div class="spinner"></div>
+        <p>Analyzing resume...</p>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

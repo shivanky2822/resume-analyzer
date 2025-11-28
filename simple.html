@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resume Analyzer</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; background: #f5f5f5; }
+        .container { max-width: 1200px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
+        .section { background: #f9f9f9; padding: 20px; border-radius: 8px; }
+        input, textarea, button { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 5px; }
+        button { background: #007bff; color: white; cursor: pointer; font-size: 16px; }
+        button:hover { background: #0056b3; }
+        .results { display: none; }
+        .score { font-size: 48px; font-weight: bold; color: #007bff; text-align: center; margin: 20px 0; }
+        .breakdown { margin: 20px 0; }
+        .score-item { display: flex; justify-content: space-between; margin: 10px 0; }
+        .keywords { display: flex; flex-wrap: wrap; gap: 5px; margin: 10px 0; }
+        .keyword { background: #007bff; color: white; padding: 5px 10px; border-radius: 15px; font-size: 12px; }
+        .missing { background: #dc3545; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Resume Analyzer</h1>
+        
+        <div class="grid">
+            <div class="section">
+                <h3>Upload & Analyze</h3>
+                
+                <label>Upload Resume (PDF/DOCX):</label>
+                <input type="file" id="resumeFile" accept=".pdf,.docx,.doc">
+                
+                <label>Job Description:</label>
+                <textarea id="jobDescription" rows="8" placeholder="Paste job description here..."></textarea>
+                
+                <button onclick="analyzeResume()">Analyze Resume</button>
+            </div>
+            
+            <div class="section results" id="results">
+                <h3>Analysis Results</h3>
+                
+                <div class="score" id="atsScore">0%</div>
+                <div id="verdict" style="text-align: center; font-size: 18px; margin-bottom: 20px;"></div>
+                
+                <div class="breakdown">
+                    <div class="score-item">
+                        <span>Keywords:</span>
+                        <span id="keywordScore">0%</span>
+                    </div>
+                    <div class="score-item">
+                        <span>Skills:</span>
+                        <span id="skillsScore">0%</span>
+                    </div>
+                    <div class="score-item">
+                        <span>Experience:</span>
+                        <span id="experienceScore">0%</span>
+                    </div>
+                    <div class="score-item">
+                        <span>Education:</span>
+                        <span id="educationScore">0%</span>
+                    </div>
+                </div>
+                
+                <h4>Matched Keywords:</h4>
+                <div class="keywords" id="matchedKeywords"></div>
+                
+                <h4>Missing Keywords:</h4>
+                <div class="keywords" id="missingKeywords"></div>
+                
+                <h4>Missing Skills:</h4>
+                <div class="keywords" id="missingSkills"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function analyzeResume() {
+            const fileInput = document.getElementById('resumeFile');
+            const jobDescription = document.getElementById('jobDescription').value;
+            
+            if (!fileInput.files[0]) {
+                alert('Please select a resume file');
+                return;
+            }
+            
+            if (!jobDescription.trim()) {
+                alert('Please enter a job description');
+                return;
+            }
+            
+            const formData = new FormData();
+            formData.append('resume', fileInput.files[0]);
+            formData.append('job_description', jobDescription);
+            
+            try {
+                console.log('Sending analysis request...');
+                
+                const response = await fetch('http://localhost:5000/analyze', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                console.log('Response status:', response.status);
+                
+                const data = await response.json();
+                console.log('Response data:', data);
+                
+                if (response.ok) {
+                    displayResults(data);
+                } else {
+                    alert('Error: ' + (data.error || 'Analysis failed'));
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Network error. Make sure server is running on port 5000');
+            }
+        }
+        
+        function displayResults(data) {
+            document.getElementById('results').style.display = 'block';
+            
+            document.getElementById('atsScore').textContent = data.ats_score + '%';
+            document.getElementById('verdict').textContent = data.verdict;
+            document.getElementById('verdict').style.color = data.verdict === 'Shortlisted' ? '#28a745' : '#dc3545';
+            
+            document.getElementById('keywordScore').textContent = data.keyword_score + '%';
+            document.getElementById('skillsScore').textContent = data.skills_score + '%';
+            document.getElementById('experienceScore').textContent = data.experience_score + '%';
+            document.getElementById('educationScore').textContent = data.education_score + '%';
+            
+            displayKeywords('matchedKeywords', data.matched_keywords, false);
+            displayKeywords('missingKeywords', data.missing_keywords, true);
+            displayKeywords('missingSkills', data.missing_skills, true);
+        }
+        
+        function displayKeywords(containerId, keywords, isMissing) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+            
+            keywords.forEach(keyword => {
+                const span = document.createElement('span');
+                span.className = 'keyword' + (isMissing ? ' missing' : '');
+                span.textContent = keyword;
+                container.appendChild(span);
+            });
+            
+            if (keywords.length === 0) {
+                container.innerHTML = '<span style="color: #666;">None</span>';
+            }
+        }
+    </script>
+</body>
+</html>
